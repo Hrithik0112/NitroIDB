@@ -15,3 +15,6 @@ export { detectBrowser, getBrowserCapabilities, requiresSafariWorkarounds, getRe
 // Export database creation
 export { createDB, Database } from './database/index.js';
 
+// Export KV store
+export { KVStore } from './kv/index.js';
+

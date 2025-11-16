@@ -4,6 +4,7 @@ import { validateSchema, checkIndexedDBAvailability, createObjectStores } from '
 import { detectBrowser } from '../utils/browser.js';
 import { BrowserIncompatibilityError } from '../errors/browser.js';
 import { MigrationError, InvalidVersionError } from '../errors/migration.js';
+import { KVStore } from '../kv/kv-store.js';
 
 /**
  * Database instance
@@ -22,14 +23,23 @@ export class Database {
   /** Migration functions */
   readonly migrations: Record<number, (transaction: IDBTransaction) => void | Promise<void>>;
 
+  /** KV store instance */
+  private _kv: KVStore | null = null;
+
   constructor(options: DatabaseOptions) {
     // Validate schema
     validateSchema(options);
 
+    // Ensure KV store is included in schema
+    const stores = { ...options.stores };
+    if (!stores.__kv__) {
+      stores.__kv__ = { primaryKey: 'key' };
+    }
+
     this.schema = {
       name: options.name,
       version: options.version,
-      stores: options.stores,
+      stores,
     };
     this.browserInfo = detectBrowser();
     this.compatMode = options.compatMode ?? 'auto';
@@ -215,6 +225,23 @@ export class Database {
    */
   getVersion(): number {
     return this.schema.version;
+  }
+
+  /**
+   * Get browser info (for error handling)
+   */
+  getBrowserInfo(): BrowserInfo {
+    return this.browserInfo;
+  }
+
+  /**
+   * Get the KV store instance
+   */
+  get kv(): KVStore {
+    if (!this._kv) {
+      this._kv = new KVStore(this, '__kv__');
+    }
+    return this._kv;
   }
 }
 
