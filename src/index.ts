@@ -18,3 +18,6 @@ export { createDB, Database } from './database/index.js';
 // Export KV store
 export { KVStore } from './kv/index.js';
 
+// Export Table API
+export { Table } from './table/index.js';
+

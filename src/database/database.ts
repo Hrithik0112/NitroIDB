@@ -5,6 +5,7 @@ import { detectBrowser } from '../utils/browser.js';
 import { BrowserIncompatibilityError } from '../errors/browser.js';
 import { MigrationError, InvalidVersionError } from '../errors/migration.js';
 import { KVStore } from '../kv/kv-store.js';
+import { Table } from '../table/table.js';
 
 /**
  * Database instance
@@ -242,6 +243,17 @@ export class Database {
       this._kv = new KVStore(this, '__kv__');
     }
     return this._kv;
+  }
+
+  /**
+   * Get a table instance for a store
+   */
+  table<T = unknown>(storeName: string): Table<T> {
+    // Validate store exists in schema
+    if (!this.schema.stores[storeName]) {
+      throw new Error(`Store "${storeName}" does not exist in schema`);
+    }
+    return new Table<T>(this, storeName);
   }
 }
 
