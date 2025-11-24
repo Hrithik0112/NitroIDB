@@ -21,3 +21,7 @@ export { KVStore } from './kv/index.js';
 // Export Table API
 export { Table, Query, QueryWhere } from './table/index.js';
 
+// Export Transaction API
+export { TransactionManager } from './transaction/index.js';
+export type { TransactionMode, TransactionOptions, TransactionContext, TransactionCallback } from './types/transaction.js';
+

@@ -6,6 +6,7 @@ import { BrowserIncompatibilityError } from '../errors/browser.js';
 import { MigrationError, InvalidVersionError } from '../errors/migration.js';
 import { KVStore } from '../kv/kv-store.js';
 import { Table } from '../table/table.js';
+import { TransactionManager } from '../transaction/transaction.js';
 
 /**
  * Database instance
@@ -26,6 +27,8 @@ export class Database {
 
   /** KV store instance */
   private _kv: KVStore | null = null;
+  /** Transaction manager instance */
+  private _transactionManager: TransactionManager | null = null;
 
   constructor(options: DatabaseOptions) {
     // Validate schema
@@ -254,6 +257,20 @@ export class Database {
       throw new Error(`Store "${storeName}" does not exist in schema`);
     }
     return new Table<T>(this, storeName);
+  }
+
+  /**
+   * Get transaction manager
+   */
+  get transaction(): TransactionManager {
+    if (!this._transactionManager) {
+      this._transactionManager = new TransactionManager(this, {
+        defaultTimeout: 5000,
+        defaultRetries: 0,
+        defaultRetryDelay: 100,
+      });
+    }
+    return this._transactionManager;
   }
 }
 
