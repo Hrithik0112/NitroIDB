@@ -1,5 +1,6 @@
 import type { Database } from '../database/database.js';
 import { TransactionAbortedError, StorageEvictedError, QuotaExceededError } from '../errors/index.js';
+import { Query } from './query.js';
 
 /**
  * Table interface for CRUD operations on object stores
@@ -329,6 +330,27 @@ export class Table<T = unknown> {
         }
       };
     });
+  }
+
+  /**
+   * Create a query builder for this table
+   */
+  query(): Query<T> {
+    return new Query<T>(this.db, this.storeName);
+  }
+
+  /**
+   * Query by index
+   */
+  where(indexName: string): ReturnType<Query<T>['where']> {
+    return this.query().where(indexName);
+  }
+
+  /**
+   * Query by primary key
+   */
+  whereKey(): ReturnType<Query<T>['whereKey']> {
+    return this.query().whereKey();
   }
 
   /**
