@@ -13,6 +13,10 @@ export interface TransactionOptions {
   durability?: 'default' | 'strict' | 'relaxed';
   /** Timeout in milliseconds */
   timeout?: number;
+  /** Number of retries on failure */
+  retries?: number;
+  /** Delay between retries in milliseconds */
+  retryDelay?: number;
 }
 
 /**
