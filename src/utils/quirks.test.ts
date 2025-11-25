@@ -170,6 +170,14 @@ describe('validateBrowserCompatibility', () => {
   it('should warn about old Safari versions', () => {
     const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
+    // Mock IndexedDB to be available for this test
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+    const originalIndexedDB = (globalThis as any).indexedDB;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+    (globalThis as any).indexedDB = {
+      open: (): void => {},
+    };
+
     const browserInfo: BrowserInfo = {
       type: 'safari',
       version: '14',
@@ -180,8 +188,20 @@ describe('validateBrowserCompatibility', () => {
       userAgent: 'Safari',
     };
 
-    validateBrowserCompatibility(browserInfo, 'auto');
-    expect(consoleSpy).toHaveBeenCalled();
+    try {
+      validateBrowserCompatibility(browserInfo, 'auto');
+      expect(consoleSpy).toHaveBeenCalled();
+    } finally {
+      // Restore original
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+      if (originalIndexedDB !== undefined) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+        (globalThis as any).indexedDB = originalIndexedDB;
+      } else {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+        delete (globalThis as any).indexedDB;
+      }
+    }
 
     consoleSpy.mockRestore();
   });
