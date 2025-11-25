@@ -1,6 +1,8 @@
 import type { Database } from '../database/database.js';
 import { TransactionAbortedError, StorageEvictedError, QuotaExceededError } from '../errors/index.js';
 import { Query } from './query.js';
+import { BulkWriteEngine } from './bulk.js';
+import type { BulkWriteOptions, BulkWriteResult } from './bulk.js';
 
 /**
  * Table interface for CRUD operations on object stores
@@ -351,6 +353,22 @@ export class Table<T = unknown> {
    */
   whereKey(): ReturnType<Query<T>['whereKey']> {
     return this.query().whereKey();
+  }
+
+  /**
+   * Bulk add records with adaptive batching and retry logic
+   */
+  async bulkAdd(records: T[], options?: BulkWriteOptions): Promise<BulkWriteResult> {
+    const engine = new BulkWriteEngine<T>(this.db, this.storeName);
+    return engine.bulkAdd(records, options);
+  }
+
+  /**
+   * Bulk delete records with adaptive batching and retry logic
+   */
+  async bulkDelete(keys: IDBValidKey[], options?: BulkWriteOptions): Promise<BulkWriteResult> {
+    const engine = new BulkWriteEngine<T>(this.db, this.storeName);
+    return engine.bulkDelete(keys, options);
   }
 
   /**

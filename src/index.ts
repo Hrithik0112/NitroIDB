@@ -21,7 +21,8 @@ export { createDB, Database } from './database/index.js';
 export { KVStore } from './kv/index.js';
 
 // Export Table API
-export { Table, Query, QueryWhere } from './table/index.js';
+export { Table, Query, QueryWhere, BulkWriteEngine } from './table/index.js';
+export type { BulkWriteOptions, BulkWriteResult } from './table/index.js';
 
 // Export Transaction API
 export { TransactionManager } from './transaction/index.js';
