@@ -20,13 +20,19 @@ import {
 import type { HealthCheckResult, HealthCheckOptions } from '../types/health.js';
 import {
   runMigrations as runMigrationsUtil,
-  validateMigrations,
   getMigrationHistory,
-  saveMigrationHistory,
   createBackup,
   needsMigration,
 } from '../utils/migration.js';
 import type { MigrationOptions, MigrationResult, MigrationHistoryEntry } from '../types/migration.js';
+import {
+  getDatabaseDiagnostics,
+  formatDiagnostics,
+  logDiagnostics,
+  inspectStore,
+} from '../utils/diagnostics.js';
+import type { DatabaseDiagnostics, StoreInspection, ErrorRecoveryOptions, ErrorRecoveryResult } from '../types/diagnostics.js';
+import { recoverFromError, determineRecoveryStrategy } from '../utils/recovery.js';
 
 /**
  * Database instance
@@ -435,6 +441,67 @@ export class Database {
    */
   async backup(): Promise<Record<string, unknown[]>> {
     return createBackup(this);
+  }
+
+  /**
+   * Debug utilities (only available when debug mode is enabled)
+   */
+  get debugUtils(): {
+    /**
+     * Log comprehensive diagnostics to console
+     */
+    log: (includeHealth?: boolean) => Promise<void>;
+    /**
+     * Get diagnostics information
+     */
+    inspect: (includeHealth?: boolean) => Promise<DatabaseDiagnostics>;
+    /**
+     * Inspect a specific store
+     */
+    inspectStore: (storeName: string) => Promise<StoreInspection>;
+    /**
+     * Format diagnostics as string
+     */
+    format: (includeHealth?: boolean) => Promise<string>;
+  } {
+    if (!this.debug) {
+      throw new Error('Debug utilities are only available when debug mode is enabled');
+    }
+
+    return {
+      log: async (includeHealth = false) => {
+        const diagnostics = await getDatabaseDiagnostics(this, includeHealth);
+        logDiagnostics(diagnostics);
+      },
+      inspect: async (includeHealth = false) => {
+        return getDatabaseDiagnostics(this, includeHealth);
+      },
+      inspectStore: async (storeName: string) => {
+        return inspectStore(this, storeName);
+      },
+      format: async (includeHealth = false) => {
+        const diagnostics = await getDatabaseDiagnostics(this, includeHealth);
+        return formatDiagnostics(diagnostics);
+      },
+    };
+  }
+
+  /**
+   * Attempt to recover from an error
+   */
+  async recover(
+    error: Error,
+    operation: () => Promise<unknown>,
+    options?: ErrorRecoveryOptions
+  ): Promise<ErrorRecoveryResult> {
+    return recoverFromError(this, error, operation, options);
+  }
+
+  /**
+   * Determine recovery strategy for an error
+   */
+  getRecoveryStrategy(error: Error): string {
+    return determineRecoveryStrategy(error);
   }
 }
 

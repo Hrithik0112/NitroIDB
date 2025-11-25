@@ -4,4 +4,5 @@ export * from './transaction.js';
 export * from './browser.js';
 export * from './health.js';
 export * from './migration.js';
+export * from './diagnostics.js';
 
