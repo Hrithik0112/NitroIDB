@@ -9,6 +9,15 @@ import { Table } from '../table/table.js';
 import { TransactionManager } from '../transaction/transaction.js';
 import { detectQuirks, generateWarnings, validateBrowserCompatibility, checkEphemeralStorage } from '../utils/quirks.js';
 import type { BrowserQuirks } from '../utils/quirks.js';
+import {
+  getStorageQuota,
+  calculateEvictionRisk,
+  generateRecommendations,
+  determineHealthStatus,
+  runConnectivityTests,
+  collectIssues,
+} from '../utils/health.js';
+import type { HealthCheckResult, HealthCheckOptions } from '../types/health.js';
 
 /**
  * Database instance
@@ -305,6 +314,63 @@ export class Database {
    */
   async checkEphemeralStorage(): Promise<boolean> {
     return checkEphemeralStorage();
+  }
+
+  /**
+   * Perform health check on the database
+   */
+  async health(options: HealthCheckOptions = {}): Promise<HealthCheckResult> {
+    const {
+      runTests = true,
+      checkQuota = true,
+      testDataSize = 1024,
+    } = options;
+
+    const timestamp = Date.now();
+    const connected = this.isOpen();
+
+    // Get storage quota information
+    const storage = checkQuota ? await getStorageQuota() : {
+      isEphemeral: await checkEphemeralStorage(),
+    };
+
+    // Calculate eviction risk
+    const evictionRisk = calculateEvictionRisk(storage, this.browserInfo);
+
+    // Run connectivity tests
+    const tests = runTests
+      ? await runConnectivityTests(this, testDataSize)
+      : {
+          canOpen: connected,
+          canRead: false,
+          canWrite: false,
+          canClose: false,
+        };
+
+    // Determine overall status
+    const status = determineHealthStatus(connected, tests, evictionRisk);
+
+    // Collect issues
+    const issues = collectIssues(connected, tests, storage, evictionRisk, this.browserInfo);
+
+    // Generate recommendations
+    const partialResult: Omit<HealthCheckResult, 'recommendations'> = {
+      status,
+      timestamp,
+      connected,
+      storage,
+      evictionRisk,
+      issues,
+      browserInfo: this.browserInfo,
+      tests,
+    };
+
+    const recommendations = generateRecommendations(partialResult);
+
+    return {
+      ...partialResult,
+      recommendations,
+    };
   }
 }
 

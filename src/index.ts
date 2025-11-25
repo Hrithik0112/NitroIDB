@@ -5,6 +5,7 @@
 
 // Export types
 export * from './types/index.js';
+export type { HealthCheckResult, HealthStatus, StorageQuota, EvictionRisk, HealthCheckOptions } from './types/health.js';
 
 // Export errors
 export * from './errors/index.js';
