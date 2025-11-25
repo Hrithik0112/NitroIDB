@@ -29,11 +29,14 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
+    "test:performance": "vitest src/performance",
+    "test:integration": "vitest tests/integration",
     "test:browser": "playwright test",
-    "test:all": "npm run test && npm run test:browser",
+    "test:all": "npm run test && npm run test:performance && npm run test:integration && npm run test:browser",
     "lint": "eslint src --ext .ts",
     "typecheck": "tsc --noEmit",
-    "prepublishOnly": "npm run build && npm run test:all"
+    "check:bundle": "node scripts/check-bundle-size.js",
+    "prepublishOnly": "npm run build && npm run check:bundle && npm run test:all"
   },
   "keywords": [
     "indexeddb",

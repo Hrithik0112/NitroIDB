@@ -26,7 +26,13 @@ const getConfig = (format) => {
 
   return {
     input: 'src/index.ts',
-    output: output[format],
+    output: {
+      ...output[format],
+      // Enable tree-shaking
+      generatedCode: {
+        constBindings: true,
+      },
+    },
     plugins: [
       nodeResolve({
         browser: format === 'iife',
@@ -39,6 +45,12 @@ const getConfig = (format) => {
       }),
     ],
     external: format !== 'iife' ? (id) => !id.startsWith('.') && !id.startsWith('/') : [],
+    // Enable tree-shaking
+    treeshake: {
+      moduleSideEffects: false,
+      propertyReadSideEffects: false,
+      tryCatchDeoptimization: false,
+    },
   };
 };
 

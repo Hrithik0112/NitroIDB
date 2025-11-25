@@ -22,7 +22,10 @@ export default defineConfig({
         statements: 90,
       },
     },
-    include: ['src/**/*.{test,spec}.{js,ts}'],
+    include: [
+      'src/**/*.{test,spec}.{js,ts}',
+      'tests/integration/**/*.{test,spec}.{js,ts}',
+    ],
     exclude: ['node_modules', 'dist', 'tests/e2e'],
   },
 });
