@@ -14,7 +14,7 @@ const getConfig = (format) => {
       file: 'dist/cjs/index.js',
       format: 'cjs',
       sourcemap: true,
-      exports: 'default',
+      exports: 'named',
     },
     iife: {
       file: 'dist/iife/index.js',

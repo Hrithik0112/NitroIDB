@@ -50,6 +50,7 @@
   "author": "Hrithik Dutta",
   "license": "MIT",
   "devDependencies": {
+    "tslib": "^2.8.1",
     "@playwright/test": "^1.40.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-typescript": "^11.1.5",
