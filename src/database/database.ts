@@ -7,6 +7,8 @@ import { MigrationError, InvalidVersionError } from '../errors/migration.js';
 import { KVStore } from '../kv/kv-store.js';
 import { Table } from '../table/table.js';
 import { TransactionManager } from '../transaction/transaction.js';
+import { detectQuirks, generateWarnings, validateBrowserCompatibility, checkEphemeralStorage } from '../utils/quirks.js';
+import type { BrowserQuirks } from '../utils/quirks.js';
 
 /**
  * Database instance
@@ -29,6 +31,8 @@ export class Database {
   private _kv: KVStore | null = null;
   /** Transaction manager instance */
   private _transactionManager: TransactionManager | null = null;
+  /** Browser quirks detected */
+  private _quirks: BrowserQuirks | null = null;
 
   constructor(options: DatabaseOptions) {
     // Validate schema
@@ -52,6 +56,18 @@ export class Database {
 
     // Check IndexedDB availability
     checkIndexedDBAvailability();
+
+    // Validate browser compatibility
+    validateBrowserCompatibility(this.browserInfo, this.compatMode);
+
+    // Detect browser quirks
+    this._quirks = detectQuirks(this.browserInfo, this.compatMode);
+
+    // Generate and log warnings in debug mode
+    if (this.debug) {
+      const warnings = generateWarnings(this._quirks, this.browserInfo, this.debug);
+      warnings.forEach((warning) => console.warn(warning));
+    }
   }
 
   /**
@@ -264,13 +280,31 @@ export class Database {
    */
   get transaction(): TransactionManager {
     if (!this._transactionManager) {
+      const quirks = this.getQuirks();
       this._transactionManager = new TransactionManager(this, {
-        defaultTimeout: 5000,
+        defaultTimeout: quirks.recommendedTimeout,
         defaultRetries: 0,
-        defaultRetryDelay: 100,
+        defaultRetryDelay: quirks.safariQuirks ? 200 : 100,
       });
     }
     return this._transactionManager;
+  }
+
+  /**
+   * Get detected browser quirks
+   */
+  getQuirks(): BrowserQuirks {
+    if (!this._quirks) {
+      this._quirks = detectQuirks(this.browserInfo, this.compatMode);
+    }
+    return this._quirks;
+  }
+
+  /**
+   * Check ephemeral storage (async)
+   */
+  async checkEphemeralStorage(): Promise<boolean> {
+    return checkEphemeralStorage();
   }
 }
 
