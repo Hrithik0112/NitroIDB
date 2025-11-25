@@ -11,6 +11,8 @@ export * from './errors/index.js';
 
 // Export browser utilities
 export { detectBrowser, getBrowserCapabilities, requiresSafariWorkarounds, getRecommendedBatchSize } from './utils/browser.js';
+export { detectQuirks, generateWarnings, applyWorkarounds, validateBrowserCompatibility, checkEphemeralStorage, testIndexedDBCapabilities } from './utils/quirks.js';
+export type { BrowserQuirks } from './utils/quirks.js';
 
 // Export database creation
 export { createDB, Database } from './database/index.js';
