@@ -45,6 +45,6 @@ export interface DatabaseOptions extends DatabaseSchema {
   /** Enable debug logging */
   debug?: boolean;
   /** Migration functions by version */
-  migrations?: Record<number, (transaction: IDBTransaction) => void | Promise<void>>;
+  migrations?: Record<number, (transaction: IDBTransaction, db: IDBDatabase) => void | Promise<void>>;
 }
 
