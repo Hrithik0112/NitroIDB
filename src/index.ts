@@ -7,6 +7,7 @@
 export * from './types/index.js';
 export type { HealthCheckResult, HealthStatus, StorageQuota, EvictionRisk, HealthCheckOptions } from './types/health.js';
 export type { Migration, MigrationResult, MigrationHistoryEntry, MigrationOptions } from './types/migration.js';
+export type { DatabaseDiagnostics, StoreInspection, ErrorRecoveryStrategy, ErrorRecoveryOptions, ErrorRecoveryResult } from './types/diagnostics.js';
 
 // Export errors
 export * from './errors/index.js';
