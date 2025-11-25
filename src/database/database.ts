@@ -18,6 +18,15 @@ import {
   collectIssues,
 } from '../utils/health.js';
 import type { HealthCheckResult, HealthCheckOptions } from '../types/health.js';
+import {
+  runMigrations as runMigrationsUtil,
+  validateMigrations,
+  getMigrationHistory,
+  saveMigrationHistory,
+  createBackup,
+  needsMigration,
+} from '../utils/migration.js';
+import type { MigrationOptions, MigrationResult, MigrationHistoryEntry } from '../types/migration.js';
 
 /**
  * Database instance
@@ -34,7 +43,7 @@ export class Database {
   /** Debug mode */
   readonly debug: boolean;
   /** Migration functions */
-  readonly migrations: Record<number, (transaction: IDBTransaction) => void | Promise<void>>;
+  readonly migrations: Record<number, (transaction: IDBTransaction, db: IDBDatabase) => void | Promise<void>>;
 
   /** KV store instance */
   private _kv: KVStore | null = null;
@@ -190,7 +199,8 @@ export class Database {
         }
 
         try {
-          const result = migration(transaction);
+          const db = transaction.db;
+          const result = migration(transaction, db);
           
           // Note: Migrations should be synchronous. If a migration returns a promise,
           // it will be ignored. For async operations, perform them after upgrade completes.
@@ -371,6 +381,60 @@ export class Database {
       ...partialResult,
       recommendations,
     };
+  }
+
+  /**
+   * Get migration history
+   */
+  async getMigrationHistory(): Promise<MigrationHistoryEntry[]> {
+    return getMigrationHistory(this);
+  }
+
+  /**
+   * Check if migrations are needed
+   */
+  needsMigration(targetVersion?: number): boolean {
+    const currentVersion = this._db?.version ?? 0;
+    const target = targetVersion ?? this.schema.version;
+    return needsMigration(this.migrations, currentVersion, target);
+  }
+
+  /**
+   * Run migrations manually (for testing or dry-run)
+   * Note: This is primarily for testing. Actual migrations run during onupgradeneeded.
+   */
+  async runMigrationsManually(
+    options: MigrationOptions = {}
+  ): Promise<MigrationResult[]> {
+    if (!this._db) {
+      await this.open();
+    }
+
+    const currentVersion = this._db?.version ?? 0;
+    const targetVersion = this.schema.version;
+
+    if (currentVersion >= targetVersion) {
+      return []; // No migrations needed
+    }
+
+    return runMigrationsUtil(
+      this,
+      this.migrations,
+      currentVersion,
+      targetVersion,
+      {
+        ...options,
+        browserInfo: this.browserInfo,
+        debug: this.debug,
+      }
+    );
+  }
+
+  /**
+   * Create a backup of the database
+   */
+  async backup(): Promise<Record<string, unknown[]>> {
+    return createBackup(this);
   }
 }
 

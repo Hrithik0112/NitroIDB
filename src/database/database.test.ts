@@ -16,7 +16,7 @@ describe('Database', () => {
     }
   });
 
-  afterEach(async () => {
+  afterEach(() => {
     // Clean up
     if (typeof indexedDB !== 'undefined') {
       try {
@@ -153,11 +153,12 @@ describe('Database', () => {
         users: { primaryKey: 'id' },
       },
       migrations: {
-        2: (tx) => {
+        2: (tx, db) => {
           migrationCalled = true;
           const store = tx.objectStore('users');
           // Migration logic here
           expect(store).toBeDefined();
+          expect(db).toBeDefined();
         },
       },
     });
