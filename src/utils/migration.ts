@@ -113,7 +113,6 @@ export async function restoreBackup(
  * @internal
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-// @ts-expect-error - Function is kept for future use
 async function _runMigration(
   migration: Migration,
   transaction: IDBTransaction,

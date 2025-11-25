@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { createDB } from '../database/index.js';
-import type { BulkWriteResult } from '../table/index.js';
 
 describe('Performance Tests', () => {
   const testDBName = 'test-performance-' + Date.now();
@@ -59,7 +58,7 @@ describe('Performance Tests', () => {
 
       const startTime = performance.now();
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-      const result = await usersTable.bulkAdd(records) as BulkWriteResult;
+      const result = await usersTable.bulkAdd(records);
       const endTime = performance.now();
       const duration = endTime - startTime;
 

@@ -161,6 +161,7 @@ export function formatDiagnostics(diagnostics: DatabaseDiagnostics): string {
  * Log diagnostics to console
  */
 export function logDiagnostics(diagnostics: DatabaseDiagnostics): void {
+  // eslint-disable-next-line no-console
   console.log(formatDiagnostics(diagnostics));
 }
 

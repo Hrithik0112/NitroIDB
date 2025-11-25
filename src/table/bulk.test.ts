@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { createDB } from '../database/index.js';
-import type { BulkWriteResult } from './bulk.js';
 import type { Table } from './table.js';
+import type { BulkWriteResult } from './index.js';
 
 interface User {
   id: string;
@@ -63,8 +63,10 @@ describe('BulkWriteEngine', () => {
     ];
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-    const result = await usersTable.bulkAdd(records) as BulkWriteResult;
+    const result = (await usersTable.bulkAdd(records)) as BulkWriteResult;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(result.success).toBe(3);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(result.failed).toBe(0);
 
     const count = await usersTable.count();
@@ -90,8 +92,10 @@ describe('BulkWriteEngine', () => {
     const usersTable: Table<User> = db.table<User>('users');
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-    const result = await usersTable.bulkAdd([]) as BulkWriteResult;
+    const result = (await usersTable.bulkAdd([])) as BulkWriteResult;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(result.success).toBe(0);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(result.failed).toBe(0);
 
     db.close();
@@ -121,12 +125,12 @@ describe('BulkWriteEngine', () => {
 
     const progressCalls: Array<[number, number]> = [];
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    await (usersTable.bulkAdd(records, {
+    await usersTable.bulkAdd(records, {
       batchSize: 3,
       progress: (done: number, total: number) => {
         progressCalls.push([done, total]);
       },
-    }) as Promise<BulkWriteResult>);
+    });
 
     expect(progressCalls.length).toBeGreaterThan(0);
     expect(progressCalls[progressCalls.length - 1]).toEqual([10, 10]);
@@ -160,9 +164,12 @@ describe('BulkWriteEngine', () => {
     ];
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-    const result = await usersTable.bulkAdd(records) as BulkWriteResult;
+    const result = (await usersTable.bulkAdd(records)) as BulkWriteResult;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(result.success).toBe(1);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(result.failed).toBe(1);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(result.failedIndices).toContain(0);
 
     db.close();
@@ -190,8 +197,9 @@ describe('BulkWriteEngine', () => {
       email: `user${i}@example.com`,
     }));
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-    const result = await usersTable.bulkAdd(records, { batchSize: 5 }) as BulkWriteResult;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    const result = (await usersTable.bulkAdd(records, { batchSize: 5 })) as BulkWriteResult;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(result.success).toBe(20);
 
     db.close();
@@ -215,16 +223,18 @@ describe('BulkWriteEngine', () => {
 
     // Add records
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    await (usersTable.bulkAdd([
+    await usersTable.bulkAdd([
       { id: '1', name: 'John', email: 'john@example.com' },
       { id: '2', name: 'Jane', email: 'jane@example.com' },
       { id: '3', name: 'Bob', email: 'bob@example.com' },
-    ]) as Promise<BulkWriteResult>);
+    ]);
 
     // Delete in bulk
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-    const result = await usersTable.bulkDelete(['1', '3']) as BulkWriteResult;
+    const result = (await usersTable.bulkDelete(['1', '3'])) as BulkWriteResult;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(result.success).toBe(2);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(result.failed).toBe(0);
 
     const count = await usersTable.count();
@@ -255,13 +265,16 @@ describe('BulkWriteEngine', () => {
     ];
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-    const result = await usersTable.bulkAdd(records, {
+    const result = (await usersTable.bulkAdd(records, {
       retries: 2,
       retryOnFail: true,
       retryDelay: 10,
-    }) as BulkWriteResult;
+    })) as BulkWriteResult;
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(result.success).toBe(2);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    expect(result.failed).toBe(0);
 
     db.close();
   });
@@ -290,11 +303,12 @@ describe('BulkWriteEngine', () => {
     }));
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-    const result = await usersTable.bulkAdd(records, {
+    const result = (await usersTable.bulkAdd(records, {
       batchSize: 20,
       retryOnFail: true,
-    }) as BulkWriteResult;
+    })) as BulkWriteResult;
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(result.success).toBe(50);
 
     db.close();
@@ -322,10 +336,11 @@ describe('BulkWriteEngine', () => {
 
     // Very short timeout - should still work for small batches
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-    const result = await usersTable.bulkAdd(records, {
+    const result = (await usersTable.bulkAdd(records, {
       timeout: 100,
-    }) as BulkWriteResult;
+    })) as BulkWriteResult;
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(result.success).toBe(1);
 
     db.close();

@@ -201,6 +201,7 @@ export class Database {
       const migration = this.migrations[version];
       if (migration) {
         if (this.debug) {
+          // eslint-disable-next-line no-console
           console.log(`[NitroIDB] Running migration from ${version - 1} to ${version}`);
         }
 
