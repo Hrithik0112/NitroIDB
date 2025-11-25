@@ -17,32 +17,37 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Run linter
-        run: npm run lint
+        run: pnpm run lint
 
       - name: Run type check
-        run: npm run typecheck
+        run: pnpm run typecheck
 
       - name: Run unit tests
-        run: npm run test
+        run: pnpm run test
 
       - name: Run performance tests
-        run: npm run test:performance
+        run: pnpm run test:performance
 
       - name: Run integration tests
-        run: npm run test:integration
+        run: pnpm run test:integration
 
       - name: Check bundle size
-        run: npm run build && npm run check:bundle
+        run: pnpm run build && pnpm run check:bundle
 
   browser-tests:
     runs-on: ubuntu-latest
@@ -50,23 +55,28 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+      
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps
+        run: pnpm exec playwright install --with-deps
 
       - name: Build
-        run: npm run build
+        run: pnpm run build
 
       - name: Run browser tests
-        run: npm run test:browser
+        run: pnpm run test:browser
 
       - name: Upload test results
         if: always()
