@@ -32,6 +32,7 @@
     "test:performance": "vitest src/performance",
     "test:integration": "vitest tests/integration",
     "test:browser": "playwright test",
+    "serve:test": "npx http-server . -p 3000 -c-1 --cors",
     "test:all": "npm run test && npm run test:performance && npm run test:integration && npm run test:browser",
     "lint": "eslint src --ext .ts",
     "typecheck": "tsc --noEmit",

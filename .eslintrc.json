@@ -27,6 +27,6 @@
       }
     }
   ],
-  "ignorePatterns": ["dist", "node_modules", "*.config.js", "scripts/**"]
+  "ignorePatterns": ["dist", "node_modules", "*.config.js", "*.config.ts", "scripts/**", "vitest.setup.ts"]
 }
 

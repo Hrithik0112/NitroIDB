@@ -33,9 +33,10 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run build',
+    command: 'pnpm run build && pnpm run serve:test',
     port: 3000,
     reuseExistingServer: !process.env.CI,
+    timeout: 120 * 1000,
   },
 });
 
