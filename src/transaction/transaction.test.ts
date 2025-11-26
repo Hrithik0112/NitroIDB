@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { createDB } from '../database/index.js';
 import { TransactionTimeoutError, TransactionAbortedError } from '../errors/transaction.js';
 
@@ -146,7 +146,7 @@ describe('TransactionManager', () => {
     await db.open();
 
     await expect(
-      db.transaction.readonly('users', async (ctx) => {
+      db.transaction.readonly('users', async (_ctx) => {
         // Simulate long operation
         await new Promise((resolve) => setTimeout(resolve, 2000));
         return 'done';
@@ -172,14 +172,17 @@ describe('TransactionManager', () => {
     await db.open();
 
     let attempt = 0;
-    const result = await db.transaction.readwrite('users', (ctx) => {
+    await db.transaction.readwrite('users', (ctx) => {
       attempt++;
       if (attempt === 1) {
         // Simulate failure on first attempt
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
         ctx.abort();
         throw new Error('Simulated failure');
       }
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       const store = ctx.transaction.objectStore('users');
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       store.add({ id: '1', name: 'John', email: 'john@example.com' });
     }, { retries: 2, retryDelay: 10 });
 
@@ -211,7 +214,7 @@ describe('TransactionManager', () => {
 
     const result = await db.transaction.readonly('users', (ctx) => {
       const store = ctx.transaction.objectStore('users');
-      const request = store.get('1');
+      store.get('1');
       // Synchronous return (though the actual operation is async)
       return 'success';
     });
@@ -270,7 +273,7 @@ describe('TransactionManager', () => {
     await db.open();
 
     await expect(
-      db.transaction.readwrite('users', (ctx) => {
+      db.transaction.readwrite('users', (_ctx) => {
         throw new Error('Test error');
       })
     ).rejects.toThrow('Test error');

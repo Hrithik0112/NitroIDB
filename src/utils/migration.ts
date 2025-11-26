@@ -2,7 +2,6 @@ import type {
   Migration,
   MigrationResult,
   MigrationHistoryEntry,
-  MigrationOptions,
   MigrationRunnerOptions,
 } from '../types/migration.js';
 import { MigrationError } from '../errors/migration.js';
@@ -71,6 +70,7 @@ export async function createBackup(db: Database): Promise<Record<string, unknown
       const allRecords = await table.query().toArray();
       backup[storeName] = allRecords;
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.warn(`Failed to backup store ${storeName}:`, error);
       backup[storeName] = [];
     }
@@ -96,9 +96,11 @@ export async function restoreBackup(
       await table.clear();
 
       if (records.length > 0) {
-        await table.bulkAdd(records);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+        await (table as { bulkAdd: (records: unknown[]) => Promise<unknown> }).bulkAdd(records);
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.warn(`Failed to restore store ${storeName}:`, error);
       throw new Error(`Failed to restore backup for store ${storeName}: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
@@ -107,8 +109,12 @@ export async function restoreBackup(
 
 /**
  * Run a single migration
+ * Note: This function is not currently used but kept for future async migration support
+ * @internal
  */
-async function runMigration(
+// eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/ban-ts-comment
+// @ts-expect-error - Function is kept for future use
+async function _runMigration(
   migration: Migration,
   transaction: IDBTransaction,
   db: IDBDatabase,
@@ -117,6 +123,7 @@ async function runMigration(
   const startTime = Date.now();
 
   if (options.debug) {
+    // eslint-disable-next-line no-console
     console.log(`[NitroIDB] Running migration to version ${migration.version}${migration.description ? `: ${migration.description}` : ''}`);
   }
 
@@ -131,6 +138,7 @@ async function runMigration(
     const duration = Date.now() - startTime;
 
     if (options.debug) {
+      // eslint-disable-next-line no-console
       console.log(`[NitroIDB] Migration to version ${migration.version} completed in ${duration}ms`);
     }
   } catch (error) {
@@ -138,6 +146,7 @@ async function runMigration(
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
     if (options.debug) {
+      // eslint-disable-next-line no-console
       console.error(`[NitroIDB] Migration to version ${migration.version} failed after ${duration}ms:`, error);
     }
 
@@ -188,6 +197,7 @@ export async function runMigrations(
   // If dry-run, simulate migrations without applying
   if (options.dryRun) {
     if (options.debug) {
+      // eslint-disable-next-line no-console
       console.log(`[NitroIDB] DRY-RUN: Would run ${migrationList.length} migration(s) from version ${fromVersion} to ${toVersion}`);
     }
 
@@ -220,29 +230,28 @@ export async function runMigrations(
     try {
       backup = await createBackup(db);
       if (options.debug) {
+        // eslint-disable-next-line no-console
         console.log(`[NitroIDB] Backup created with ${Object.keys(backup).length} stores`);
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.warn('[NitroIDB] Failed to create backup:', error);
       // Continue without backup
     }
   }
 
   // Run migrations within a transaction
-  try {
-    if (!db.isOpen()) {
-      await db.open();
-    }
+  // Ensure database is open before running migrations
+  if (!db.isOpen()) {
+    await db.open();
+  }
 
-    // Note: IndexedDB migrations must run during onupgradeneeded
-    // This function is called from within that context
-    // For async migrations, we need to handle them after the upgrade completes
+  // Note: IndexedDB migrations must run during onupgradeneeded
+  // This function is called from within that context
+  // For async migrations, we need to handle them after the upgrade completes
 
-    // Get the database instance
-    const idb = await db.getDB();
-
-    // Run each migration
-    for (const migration of migrationList) {
+  // Run each migration
+  for (const migration of migrationList) {
       const startTime = Date.now();
       const fromVer = migration.version - 1;
       const toVer = migration.version;
@@ -252,6 +261,7 @@ export async function runMigrations(
         // Since IndexedDB transactions are synchronous during onupgradeneeded,
         // we'll mark these for post-upgrade execution
         if (options.debug) {
+          // eslint-disable-next-line no-console
           console.log(`[NitroIDB] Executing migration ${fromVer} -> ${toVer}`);
         }
 
@@ -303,13 +313,16 @@ export async function runMigrations(
         if (backup) {
           try {
             if (options.debug) {
+              // eslint-disable-next-line no-console
               console.log('[NitroIDB] Attempting to restore from backup...');
             }
             await restoreBackup(db, backup);
             if (options.debug) {
+              // eslint-disable-next-line no-console
               console.log('[NitroIDB] Backup restored successfully');
             }
           } catch (restoreError) {
+            // eslint-disable-next-line no-console
             console.error('[NitroIDB] Failed to restore backup:', restoreError);
           }
         }
@@ -321,11 +334,7 @@ export async function runMigrations(
       }
     }
 
-    return results;
-  } catch (error) {
-    // If any migration fails, results will contain the failure
-    throw error;
-  }
+  return results;
 }
 
 /**
@@ -370,7 +379,7 @@ export function getNextMigrationVersion(
     .filter(v => v > currentVersion)
     .sort((a, b) => a - b);
 
-  return versions.length > 0 ? versions[0] : null;
+  return versions.length > 0 ? (versions[0] ?? null) : null;
 }
 
 /**

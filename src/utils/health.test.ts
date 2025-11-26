@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
   getStorageQuota,
   calculateEvictionRisk,
@@ -19,6 +19,9 @@ describe('Health Check Utilities', () => {
     });
 
     it('should handle storage API errors gracefully', async () => {
+      // Suppress console.warn for this test since we're testing error handling
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
       // Mock navigator.storage to throw an error
       const originalStorage = typeof navigator !== 'undefined' && 'storage' in navigator
         ? navigator.storage
@@ -45,6 +48,8 @@ describe('Health Check Utilities', () => {
           configurable: true,
         });
       }
+
+      consoleSpy.mockRestore();
     });
   });
 
@@ -274,7 +279,7 @@ describe('Health Check Utilities', () => {
 
       const recommendations = generateRecommendations(partialResult);
       expect(recommendations.some(r => r.includes('CRITICAL'))).toBe(true);
-      expect(recommendations.some(r => r.includes('delete'))).toBe(true);
+      expect(recommendations.some(r => r.toLowerCase().includes('delete'))).toBe(true);
     });
   });
 

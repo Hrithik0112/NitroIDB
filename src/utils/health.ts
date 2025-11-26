@@ -44,7 +44,11 @@ export async function getStorageQuota(): Promise<StorageQuota> {
     }
   } catch (error) {
     // Storage API not available or failed
-    console.warn('Failed to get storage quota:', error);
+    // Silently handle - this is expected in some environments
+    // Only log in debug mode or if it's an unexpected error
+    if (process.env.NODE_ENV === 'development' || process.env.DEBUG) {
+      console.warn('Failed to get storage quota:', error);
+    }
   }
 
   return quota;

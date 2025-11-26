@@ -29,11 +29,15 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
+    "test:performance": "vitest src/performance",
+    "test:integration": "vitest tests/integration",
     "test:browser": "playwright test",
-    "test:all": "npm run test && npm run test:browser",
+    "serve:test": "npx http-server . -p 3000 -c-1 --cors",
+    "test:all": "npm run test && npm run test:performance && npm run test:integration && npm run test:browser",
     "lint": "eslint src --ext .ts",
     "typecheck": "tsc --noEmit",
-    "prepublishOnly": "npm run build && npm run test:all"
+    "check:bundle": "node scripts/check-bundle-size.js",
+    "prepublishOnly": "npm run build && npm run check:bundle && npm run test:all"
   },
   "keywords": [
     "indexeddb",
@@ -47,6 +51,7 @@
   "author": "Hrithik Dutta",
   "license": "MIT",
   "devDependencies": {
+    "tslib": "^2.8.1",
     "@playwright/test": "^1.40.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-typescript": "^11.1.5",
@@ -56,12 +61,10 @@
     "@vitest/coverage-v8": "^1.0.4",
     "@vitest/ui": "^1.0.4",
     "eslint": "^8.54.0",
+    "jsdom": "^27.2.0",
     "rollup": "^4.6.0",
     "typescript": "^5.3.2",
     "vite": "^5.0.5",
     "vitest": "^1.0.4"
-  },
-  "peerDependencies": {},
-  "dependencies": {}
+  }
 }
-
